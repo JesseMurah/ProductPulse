@@ -1,4 +1,7 @@
-import { postRouter } from "@/server/api/routers/post";
+// import { postRouter } from "@/server/api/routers/post";
+import { companyRouter } from "@/server/api/routers/company";
+import { productRouter } from "@/server/api/routers/product";
+import { productAvailabilityRouter } from "@/server/api/routers/productAvailability";
 import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
 
 /**
@@ -7,7 +10,10 @@ import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
  * All routers added in /api/routers should be manually added here.
  */
 export const appRouter = createTRPCRouter({
-  post: postRouter,
+  company: companyRouter,
+  product: productRouter,
+  productAvailability: productAvailabilityRouter,
+  // post: postRouter,
 });
 
 // export type definition of API
