@@ -52,6 +52,7 @@ model User {
   accounts      Account[]
   sessions      Session[]
   companies     Company[]
+  Product       Product[]
 }
 
 model VerificationToken {
@@ -82,11 +83,13 @@ model Company {
 }
 
 model Product {
-  id        String                @id @default(cuid())
-  name      String                @unique
-  companies ProductAvailability[]
-  createdAt DateTime              @default(now())
-  updatedAt DateTime              @updatedAt
+  id          String                @id @default(cuid())
+  name        String                @unique
+  companies   ProductAvailability[]
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
+  createdBy   User                  @relation(fields: [createdById], references: [id])
+  createdById String
 }
 
 model ProductAvailability {
