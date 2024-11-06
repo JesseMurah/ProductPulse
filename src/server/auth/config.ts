@@ -1,8 +1,10 @@
-import { PrismaAdapter } from "@auth/prisma-adapter";
-import { type DefaultSession, type NextAuthConfig } from "next-auth";
-import DiscordProvider from "next-auth/providers/discord";
-
+import { PrismaAdapter } from "@next-auth/prisma-adapter";
+import { type DefaultSession, type NextAuthOptions } from "next-auth";
+import EmailProvider from "next-auth/providers/email";
+import GoogleProvider from "next-auth/providers/google";
 import { db } from "@/server/db";
+import * as process from "node:process";
+
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -15,24 +17,41 @@ declare module "next-auth" {
     user: {
       id: string;
       // ...other properties
-      // role: UserRole;
+      role: "ADMIN" | "USER";
     } & DefaultSession["user"];
   }
 
-  // interface User {
-  //   // ...other properties
-  //   // role: UserRole;
-  // }
-}
+  interface User {
+    role: "ADMIN" | "USER";
+  }
+} // <-- Added missing closing brace here
 
 /**
  * Options for NextAuth.js used to configure adapters, providers, callbacks, etc.
  *
  * @see https://next-auth.js.org/configuration/options
  */
-export const authConfig = {
+export const authConfig: NextAuthOptions = {
   providers: [
-    DiscordProvider,
+    EmailProvider({
+      server: {
+        host: process.env.EMAIL_SERVER_HOST!,
+        port: Number(process.env.EMAIL_SERVER_PORT!),
+        auth: {
+          user: process.env.EMAIL_SERVER_USER!,
+          pass: process.env.EMAIL_SERVER_PASSWORD!,
+        },
+      },
+      from: process.env.EMAIL_FROM!,
+      sendVerificationRequest(url) {
+        console.log("LOGIN LINK", url)
+      }, // Updated to use a properly defined function
+    }),
+    // Uncomment and configure GoogleProvider when ready
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    }),
     /**
      * ...add more providers here.
      *
@@ -50,7 +69,11 @@ export const authConfig = {
       user: {
         ...session.user,
         id: user.id,
+        role: user.role,
       },
     }),
   },
-} satisfies NextAuthConfig;
+  secret: process.env.NEXTAUTH_SECRET, // Ensure this is set
+} satisfies NextAuthOptions;
+
+
